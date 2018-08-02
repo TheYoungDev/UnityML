@@ -116,12 +116,12 @@ public class BananaAgent : Agent
                         break;
                 }
             }
-            /*if (shootCommand)
+            if (shootCommand)
             {
                 shoot = true;
                 dirToGo *= 0.5f;
                 agentRb.velocity *= 0.75f;
-            }*/
+            }
             agentRb.AddForce(dirToGo * moveSpeed, ForceMode.VelocityChange);
             transform.Rotate(rotateDir, Time.fixedDeltaTime * turnSpeed);
         }

@@ -14,6 +14,9 @@ public class PushAgentBasic : Agent
 
     public GameObject area;
 
+    public float RandomX =2f;
+
+    public float RandomZ=2f;
     /// <summary>
     /// The area bounds.
     /// </summary>
@@ -32,6 +35,10 @@ public class PushAgentBasic : Agent
     /// </summary>
     public GameObject block;
 
+    public GameObject[] Obstacles;
+    public GameObject[] Goals;
+    public Vector3 StartLocation =new Vector3 (0,1,0);
+    public int GoalCount =0;
     /// <summary>
     /// Detects when the block touches the goal.
     /// </summary>
@@ -65,7 +72,7 @@ public class PushAgentBasic : Agent
         // Cache the agent rigidbody
         agentRB = GetComponent<Rigidbody>();
         // Cache the block rigidbody
-        //blockRB = block.GetComponent<Rigidbody>();
+        blockRB = block.GetComponent<Rigidbody>();
         // Get the ground's bounds
         areaBounds = ground.GetComponent<Collider>().bounds;
         // Get the ground renderer so we can change the material when a goal is scored
@@ -79,10 +86,10 @@ public class PushAgentBasic : Agent
         if (useVectorObs)
         {
             var rayDistance = 12f;
-            float[] rayAngles = { 0f, 45f, 90f, 135f, 180f, 110f, 70f };
-            var detectableObjects = new[] { "block", "goal", "wall" };
+            float[] rayAngles = { 0f, 45f, 90f, 135f, 180f, 110f, 70f };//,315f, 270f, 225f, 250f,290f
+            var detectableObjects = new[] { "block", "goal", "wall" ,"enemy"};
             AddVectorObs(rayPer.Perceive(rayDistance, rayAngles, detectableObjects, 0f, 0f));
-            AddVectorObs(rayPer.Perceive(rayDistance, rayAngles, detectableObjects, 1.5f, 0f));
+            //AddVectorObs(rayPer.Perceive(rayDistance, rayAngles, detectableObjects, 1.5f, 0f));
         }
     }
 
@@ -95,17 +102,26 @@ public class PushAgentBasic : Agent
         Vector3 randomSpawnPos = Vector3.zero;
         while (foundNewSpawnLocation == false)
         {
-            float randomPosX = Random.Range(-areaBounds.extents.x * academy.spawnAreaMarginMultiplier,
-                                areaBounds.extents.x * academy.spawnAreaMarginMultiplier);
+            float randomPosX = Random.Range(-RandomX, RandomX);
 
-            float randomPosZ = Random.Range(-areaBounds.extents.z * academy.spawnAreaMarginMultiplier,
-                                            areaBounds.extents.z * academy.spawnAreaMarginMultiplier);
-            randomSpawnPos = ground.transform.position + new Vector3(randomPosX, 1f, randomPosZ);
-            if (Physics.CheckBox(randomSpawnPos, new Vector3(2.5f, 0.01f, 2.5f)) == false)
+            /*Random.Range(-areaBounds.extents.x * academy.spawnAreaMarginMultiplier,
+                            areaBounds.extents.x * academy.spawnAreaMarginMultiplier);*/
+
+            float randomPosZ = Random.Range(-RandomX, RandomX);
+            //Random.Range(-areaBounds.extents.z * academy.spawnAreaMarginMultiplier,
+            //areaBounds.extents.z * academy.spawnAreaMarginMultiplier);//*/
+            randomSpawnPos = StartLocation;//ground.transform.position+new Vector3(randomPosX, 1f, randomPosZ); // ground.transform.position +
+            if (Physics.CheckBox(randomSpawnPos, new Vector3(1f, 0.01f, 1f)) == false)
             {
                 foundNewSpawnLocation = true;
             }
         }
+        if (Goals.Length == 0)
+        {
+            Goals = GameObject.FindGameObjectsWithTag("goal");
+            
+        }
+        GoalCount = 0;
         return randomSpawnPos;
     }
 
@@ -116,12 +132,42 @@ public class PushAgentBasic : Agent
     {
         // We use a reward of 5.
         AddReward(5f);
+        //GoalCount++;
+       /* if (GoalCount >= Goals.Length)
+        {
+            Debug.Log("Done");
+            //AddReward(15f);
+            Done();
+        }
+        float distance = 0;*/
+       /* foreach(GameObject Goal in Goals)
+        {
+            distance = Vector3.Distance(transform.position, Goal.transform.position);
+            if(distance >= 15)
+            {
+                AddReward(15f);
+                Done();
+            }
+        }*/
+            
 
         // By marking an agent as done AgentReset() will be called automatically.
-        Done();
+        // Done();
 
         // Swap ground material for a bit to indicate we scored.
         StartCoroutine(GoalScoredSwapGroundMaterial(academy.goalScoredMaterial, 0.5f));
+    }
+    public void ILoseAGoal()
+    {
+        // We use a reward of 5.
+       
+        AddReward(-1f);
+
+        // By marking an agent as done AgentReset() will be called automatically.
+        //Done();
+
+        // Swap ground material for a bit to indicate we scored.
+        StartCoroutine(GoalScoredSwapGroundMaterial(academy.failMaterial, 0.5f));
     }
 
     /// <summary>
@@ -172,17 +218,38 @@ public class PushAgentBasic : Agent
                          ForceMode.VelocityChange);
 
     }
-
+    void OnCollisionEnter(Collision col)
+    {
+        if (col.gameObject.CompareTag("goal"))
+        {
+            IScoredAGoal();
+        }
+         if (col.gameObject.CompareTag("wall"))
+         {
+             ILoseAGoal();
+         }
+    }
+    void OnTriggerEnter(Collider col)
+    {
+        if (col.transform.gameObject.CompareTag("goal"))
+        {
+            IScoredAGoal();
+        }
+        if (col.transform.gameObject.CompareTag("enemy"))
+        {
+            ILoseAGoal();
+        }
+    }
     /// <summary>
     /// Called every step of the engine. Here the agent takes an action.
     /// </summary>
-	public override void AgentAction(float[] vectorAction, string textAction)
+    public override void AgentAction(float[] vectorAction, string textAction)
     {
         // Move the agent using the action.
         MoveAgent(vectorAction);
-
+        
         // Penalty given each step to encourage agent to finish task quickly.
-        AddReward(-1f / agentParameters.maxStep);
+        AddReward(-5f / agentParameters.maxStep);
     }
 
     /// <summary>
@@ -193,12 +260,22 @@ public class PushAgentBasic : Agent
         // Get a random position for the block.
         //block.transform.position = GetRandomSpawnPos();
 
+       foreach( GameObject goal in Goals)
+        {
+            //if(goal.Ac)
+            goal.SetActive(true);
+        }
+
         // Reset block velocity back to zero.
-        //blockRB.velocity = Vector3.zero;
+        blockRB.velocity = Vector3.zero;
 
         // Reset block angularVelocity back to zero.
-        //blockRB.angularVelocity = Vector3.zero;
+        blockRB.angularVelocity = Vector3.zero;
     }
+    /*private void FixedUpdate()
+    {
+       //AddReward(3f / agentParameters.maxStep);
+    }*/
 
 
     /// <summary>

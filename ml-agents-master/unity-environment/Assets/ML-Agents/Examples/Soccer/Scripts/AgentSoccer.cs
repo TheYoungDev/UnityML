@@ -94,17 +94,17 @@ public class AgentSoccer : Agent
             kickPower = 0f;
             switch (action)
             {
-                case 0:
+                case 4:
                     dirToGo = transform.forward * 1f;
                     kickPower = 1f;
                     break;
-                case 1:
+                case 3:
                     dirToGo = transform.forward * -1f;
                     break;
-                case 3:
+                case 0:
                     dirToGo = transform.right * -1f;
                     break;
-                case 2:
+                case 1:
                     dirToGo = transform.right * 1f;
                     break;
             }

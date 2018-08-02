@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class GoalDetect : MonoBehaviour
 {
-    [HideInInspector]
+    //[HideInInspector]
     /// <summary>
     /// The associated agent.
     /// This will be set by the agent script on Initialization. 
@@ -15,12 +15,46 @@ public class GoalDetect : MonoBehaviour
     /// </summary>
 	public PushAgentBasic agent;  //
 
+    public Transform[] CheckPoints;
+    public Transform CurrentCheckPoint;
+    public float speed = 1;
+
+
     void OnCollisionEnter(Collision col)
     {
         // Touched goal.
-        if (col.gameObject.CompareTag("goal"))
+        /*if (col.gameObject.CompareTag("goal"))
         {
             agent.IScoredAGoal();
-        }
+        }*/
+       /* if (col.gameObject.CompareTag("enemy"))
+        {
+            agent.ILoseAGoal();
+        }*/
+    }
+    public void Update()
+    {
+       /* if (Vector3.Distance(transform.position, CurrentCheckPoint.position) <= 1f)
+            UpdateCheckPoint();
+        else
+        {
+            // The step size is equal to speed times frame time.
+            float step = speed * Time.deltaTime;
+
+            // Move our position a step closer to the target.
+            transform.position = Vector3.MoveTowards(transform.position, CurrentCheckPoint.position, step);
+        }*/
+            
+
+
+    }
+    public void UpdateCheckPoint()
+    {
+        var index = Random.Range(0, CheckPoints.Length);
+        CurrentCheckPoint = CheckPoints[index];
+    }
+    private void Start()
+    {
+       // UpdateCheckPoint();
     }
 }
