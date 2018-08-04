@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine;
-//using MLAgents;
-public class Go_Logic : MonoBehaviour {
+using MLAgents;
+public class Go_LogicML : Agent
+{
 
     public string MyTeam = "white";
     public int MyScore = 0;
@@ -28,7 +29,7 @@ public class Go_Logic : MonoBehaviour {
     public Material[] boardPosMats;
     public int EnemySelection;
     public int previousNum;
-    public bool flag =false;
+    public bool flag = false;
 
     // Use this for initialization
     void Start () {
@@ -38,7 +39,7 @@ public class Go_Logic : MonoBehaviour {
             AvialableSpaces[i] = true;
         }
     }
-    /*
+
     public override void InitializeAgent()
     {
         boardPositions = GameObject.FindGameObjectsWithTag("boardpos");
@@ -46,7 +47,7 @@ public class Go_Logic : MonoBehaviour {
         {
             AvialableSpaces[i] = true;
         }
-        
+
     }
 
     public override void CollectObservations()
@@ -62,18 +63,18 @@ public class Go_Logic : MonoBehaviour {
             return;
 
         var key1 = (int)vectorAction[0];//w =1 enter=2
+        var key2 = (int)vectorAction[1];
 
 
-      
         Debug.Log(SelectedSquare + MyTeam);
 
 
         if (key1 == 1)//increment
         {
-            
+
             if (SelectedSquare == 80)
             {
-                SelectedSquare =0;
+                SelectedSquare = 0;
             }
             else
             {
@@ -97,8 +98,8 @@ public class Go_Logic : MonoBehaviour {
             {
                 AddReward(0.2f);
                 AvialableSpaces[SelectedSquare] = false;
-               // MySpaces[SelectedSquare] = true;
-               // EnemyBrain.GetComponent<Go_Logic>().EnemySpaces[SelectedSquare] = true;
+                // MySpaces[SelectedSquare] = true;
+                // EnemyBrain.GetComponent<Go_Logic>().EnemySpaces[SelectedSquare] = true;
                 EnemyBrain.GetComponent<Go_Logic>().AvialableSpaces[SelectedSquare] = false;
                 GameObject GO = Instantiate(Tile, boardPositions[SelectedSquare].transform.position, Quaternion.identity);
                 MyTurn = false;
@@ -117,11 +118,11 @@ public class Go_Logic : MonoBehaviour {
                 AddReward(-0.01f);
             }
         }
-        else if(key1 == 0)//did nothing shouldent happen
+        else if (key1 == 0)//did nothing shouldent happen
         {
             AddReward(-0.05f);
         }
-            
+
     }
 
     public override void AgentReset()
@@ -132,7 +133,7 @@ public class Go_Logic : MonoBehaviour {
             Destroy(GO);
         }
 
-    }*/
+    }
 
 
 
@@ -140,21 +141,22 @@ public class Go_Logic : MonoBehaviour {
 
 
     // Update is called once per frame
-    void Update () {
-        if (MyTurn && !flag) //start of tuern
+    void Update()
+    {
+        /*if (MyTurn && !flag) //start of tuern
         {
-            //MoveMade();
-        }
-        if (MyTurn)
+            MoveMade();
+        }*/
+        /*if (MyTurn)
             TakeTurn();
-    
-        
+
+        */
 
     }
 
     public void TakeTurn()
     {
-/*
+
         if (Input.GetKey(KeyCode.W))
         {
             if (SelectedSquare <= 79)
@@ -163,9 +165,9 @@ public class Go_Logic : MonoBehaviour {
             }
             else
             {
-                SelectedSquare =0;
+                SelectedSquare = 0;
             }
-            
+
         }
         if (Input.GetKeyUp(KeyCode.KeypadEnter))
         {
@@ -188,16 +190,17 @@ public class Go_Logic : MonoBehaviour {
                 EnemyBrain.GetComponent<Go_Logic>().MyTurn = true;
                 //check if captured
 
-            }*/
-
-            if (!AI)
-            {
-            InputNumber.ActivateInputField();
             }
+        }
+        /*
+                    if (!AI)
+                {
+                    InputNumber.ActivateInputField();
+                }*/
 
 
 
-        if (Input.GetKeyUp(KeyCode.KeypadEnter))
+        if (Input.GetKeyUp(KeyCode.KeypadEnter) && !AI)
         {
             if (AvialableSpaces.Length >= SelectedSquare && AvialableSpaces[SelectedSquare])
             {
@@ -205,13 +208,12 @@ public class Go_Logic : MonoBehaviour {
                 MySpaces[SelectedSquare] = true;
                 EnemyBrain.GetComponent<Go_Logic>().EnemySpaces[SelectedSquare] = true;
                 EnemyBrain.GetComponent<Go_Logic>().AvialableSpaces[SelectedSquare] = false;
-                GameObject GO= Instantiate(Tile, boardPositions[SelectedSquare].transform.position, Quaternion.identity);
+                GameObject GO = Instantiate(Tile, boardPositions[SelectedSquare].transform.position, Quaternion.identity);
                 //MyTiles.Add(GO);
-                
+
                 MyTurn = false;
-                Debug.Log("MyTurn over");
                 EnemyBrain.GetComponent<Go_Logic>().MoveMade(SelectedSquare);
-                
+
                 Debug.Log("SelectedSquare: " + SelectedSquare);
                 int tempint = SelectedSquare;
                 InfoLabel.text += " Selected: " + tempint + "\n";
@@ -222,21 +224,21 @@ public class Go_Logic : MonoBehaviour {
             }
 
         }
-        
+
     }
     public void AddScore(float score)
     {
-        //AddReward(score);
+        AddReward(score);
         //MyScore += score;
         //Debug.Log("Captured: " + score + " Tiles");
-        InfoLabel.text += "Score: "+ score+ "\n";
+        InfoLabel.text += "Score: " + score + "\n";
     }
 
     public void MoveMade(int _enemyselection)
     {
 
-        //EnemySelection = _enemyselection;
-        //Debug.Log("Enemy of " + MyTeam + " went "+ EnemySelection);
+        EnemySelection = _enemyselection;
+        Debug.Log("Enemy of " + MyTeam + " went " + EnemySelection);
         /*m_Tiles = GameObject.FindGameObjectsWithTag(MyTeam);
         foreach (GameObject GO in m_Tiles)
         {
@@ -249,14 +251,15 @@ public class Go_Logic : MonoBehaviour {
         if (InputNumber.text != "")
         {
 
-      
+
             var temp = int.Parse(InputNumber.text);
-            if (temp<=81 && temp >= 0) { 
+            if (temp <= 81 && temp >= 0)
+            {
                 boardPositions[SelectedSquare].GetComponent<MeshRenderer>().material = boardPosMats[0];
                 SelectedSquare = temp;
                 boardPositions[SelectedSquare].GetComponent<MeshRenderer>().material = boardPosMats[1];
 
-            
+
             }
         }
     }
@@ -266,11 +269,12 @@ public class Go_Logic : MonoBehaviour {
         {
 
         }
-        else { 
-            var temp = int.Parse(InputNumber.text);
+        else
+        {
+            var temp = int.Parse(InputNumber.text) - 1;
             if (temp <= 81 && temp >= 0)
             {
-                if(previousNum != temp)
+                if (previousNum != temp)
                 {
                     boardPositions[previousNum].GetComponent<MeshRenderer>().material = boardPosMats[0];
                     previousNum = temp;
@@ -284,13 +288,13 @@ public class Go_Logic : MonoBehaviour {
     }
     public void LightUp()
     {
-       
-
-            
 
 
-        
-                    
+
+
+
+
+
 
     }
     /*

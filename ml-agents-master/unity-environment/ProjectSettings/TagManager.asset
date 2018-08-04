@@ -26,6 +26,13 @@ TagManager:
   - pyramid
   - switchOn
   - stone
+  - enemy
+  - white
+  - black
+  - empty
+  - boardpos
+  - whiteAgent
+  - blackAgent
   layers:
   - Default
   - TransparentFX
