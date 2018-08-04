@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Go Board Game ML/Go_BoardGameML_LargBoard.unity
+    guid: 58ae8347625dac241b31607c6baeea74
   m_configObjects: {}

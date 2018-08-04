@@ -4,22 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using MLAgents;
 
-public class GOAgent : Agent {
+public class GOAgent : Agent
+{
 
     public enum Team
     {
         white, black
     }
-    int zero = 0;
-    int one = 0;
-    int two = 0;
-    int three = 0;
-    int four = 0;
-    int five = 0;
-    int six = 0;
-    int seven = 0;
-    int eight = 0;
-    int nine = 0;
 
     public string MyTeam = "white";
     public float MyScore = 0;
@@ -28,20 +19,22 @@ public class GOAgent : Agent {
     public int wins = 0;
     public float Moves = 0;
     public int Rounds = 1;
-    public int AvialableSpacesCount =0;
+    public int pre_Pos = -1;
+    public float MaxInput = 323; //zero is counted so 18*18=324 so MaxInput=323
+    public int AvialableSpacesCount = 0;
     public bool[] AvialableSpaces;
-    public bool[] MySpaces;
-    public bool[] EnemySpaces;
+    public bool[] MySpaces;//not used
+    public bool[] EnemySpaces;//not used
     public int SelectedSquare;
-    public int SelectedSquareTens = -1;
-    public int SelectedSquareOnes = -1;
+    public int SelectedSquareTens = -1;//not used
+    public int SelectedSquareOnes = -1;//not used
     public bool MyTurn = true;
 
     public List<GameObject> MyTiles;
     public GameObject[] m_Tiles;
     public GameObject Tile;
     public GameObject EnemyBrain;
-    public bool AI = false;
+    public bool AI = false;//not used
     public float boardOffset = 4f;
     public GameObject[] boardPositions;
     public Text InfoLabel;
@@ -52,19 +45,21 @@ public class GOAgent : Agent {
     public int previousNum;
     public bool flag = false;
     // Use this for initialization
-    void Start () {
-         boardPositions = GameObject.FindGameObjectsWithTag("boardpos");
-         for (int i = 0; i < AvialableSpaces.Length; i++)
-         {
-             AvialableSpaces[i] = true;
-         }
-     }
-     void Update () {
+    void Start()
+    {
+        boardPositions = GameObject.FindGameObjectsWithTag("boardpos");
+        for (int i = 0; i < AvialableSpaces.Length; i++)
+        {
+            AvialableSpaces[i] = true;
+        }
+    }
+    void Update()
+    {
 
-     }
+    }
     public bool areAllFalse()
     {
-        foreach(bool b in AvialableSpaces) if (b) return false;
+        foreach (bool b in AvialableSpaces) if (b) return false;
         return true;
     }
 
@@ -89,7 +84,7 @@ public class GOAgent : Agent {
     }
     public override void AgentAction(float[] vectorAction, string textAction)
     {
-   
+
         if (!MyTurn)
             return;
 
@@ -98,49 +93,67 @@ public class GOAgent : Agent {
             AgentReset();
             EnemyBrain.GetComponent<GOAgent>().AgentReset();
         }
-        if (Mathf.Abs(MLScore) >= 50)
+        if (MLScore <= -30)//forfiet game
         {
-            AgentReset();
-            EnemyBrain.GetComponent<GOAgent>().AgentReset();
+            AddScore(-50);
+            //AgentReset();
+            //EnemyBrain.GetComponent<GOAgent>().AgentReset();
         }
-           
+
         if (vectorAction[0] < 0)
+        {
+            // AddScore(-0.05f);
+            return;
+        }
+        else
+        {
+            //AddScore(0.05f);
+        }
+        var key1 = (int)(Mathf.Clamp(vectorAction[0], 0, MaxInput / 1000) * 1000);//0-324
+        if (MaxInput < 100)
+            key1 = (int)(Mathf.Clamp(vectorAction[0], 0, MaxInput / 100) * 100);//0-80
+
+        int postion = 0;
+        postion = key1;
+        //new method
+        if (true)
+        {
+            postion = (int)vectorAction[0] * 1;// + (int)vectorAction[1] * 2 + (int)vectorAction[2] * 4 + (int)vectorAction[3] * 8 + (int)vectorAction[4] * 16 + (int)vectorAction[5] * 32 + (int)vectorAction[6] * 64 + (int)vectorAction[7] * 128 + (int)vectorAction[8] * 256;
+        }
+
+
+        Debug.Log(vectorAction[0] + MyTeam + postion);
+        if (postion > MaxInput || !AvialableSpaces[postion])//invalid input
         {
             AddScore(-0.05f);
             return;
         }
         else
         {
-            AddScore(0.05f);
+            AddScore(0.2f);
+
         }
-        var key1 = (int)(Mathf.Clamp(vectorAction[0], 0, 0.8f)*100);//0-80
-
-
-        int postion = 0;
-        postion = key1; 
-        if (postion > 80 || !AvialableSpaces[postion])//invalid input
+        if (pre_Pos == postion)
         {
-            AddScore(-0.05f );
-            return;
+            AddScore(-0.2f);
         }
         else
         {
-            AddScore(0.05f );
-
+            AddScore(0.05f);
         }
-   
 
 
-        Debug.Log(postion + MyTeam);
 
         boardPositions[SelectedSquare].GetComponent<MeshRenderer>().material = boardPosMats[0];
         boardPositions[postion].GetComponent<MeshRenderer>().material = boardPosMats[1];
         SelectedSquare = postion;
 
-        if (true){
-            if (AvialableSpaces[postion]){
-                    //AddScore(0.5f * AvialableSpacesCount/100);
-                    AvialableSpaces[postion] = false;
+        if (true)
+        {
+            if (AvialableSpaces[postion])
+            {
+                //AddScore(0.5f * AvialableSpacesCount/100);
+                AvialableSpaces[postion] = false;
                 if (gameObject.name.Contains("white"))
                 {
                     //GameObject EnemyBrain = GameObject.Find("blackAgent");
@@ -157,7 +170,7 @@ public class GOAgent : Agent {
                     EnemyBrain.GetComponent<GOAgent>().MyTurn = true;
                 }
 
-                AvialableSpacesCount+=2;
+                AvialableSpacesCount += 2;
                 GameObject GO = Instantiate(Tile, boardPositions[postion].transform.position, Quaternion.identity);
                 GO.GetComponent<TileLogic>().MyBrain = gameObject;
                 GO.GetComponent<TileLogic>().EnemyBrain = EnemyBrain;
@@ -174,15 +187,15 @@ public class GOAgent : Agent {
                 {
                     InfoLabel.text = "Selected: " + tempint + "\n";
                 }
-                    
+
                 flag = false;
-              
+
 
 
             }
             else //selected a used space
             {
-               // AddScore(-0.5f/AvialableSpacesCount);
+                // AddScore(-0.5f/AvialableSpacesCount);
             }
         }
     }
@@ -200,11 +213,11 @@ public class GOAgent : Agent {
             {
                 InfoLabel.text = "Scored: " + score + " points" + "\n";
             }
-            MyScore += score ;
+            MyScore += score;
         }
 
         MLScore += score;
-        ScoreLabel.text = MyTeam+"\n" + " ML Score: " + MLScore + "\n" + " Game Score: " + MyScore + "\n" + " Avg Score: " + TotalScore / Rounds + "\n" + " Wins: "+ wins +"\n" + " Moves: " + Moves;
+        ScoreLabel.text = MyTeam + "\n" + " ML Score: " + MLScore + "\n" + " Game Score: " + MyScore + "\n" + " Avg Score: " + TotalScore / Rounds + "\n" + " Wins: " + wins + "\n" + " Moves: " + Moves;
     }
     private static GameObject GetEnemyBrain(GameObject EnemyBrain)
     {
