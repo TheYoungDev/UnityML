@@ -53,8 +53,8 @@ public class Go_LogicML : Agent
     public override void CollectObservations()
     {
         AddVectorObs(EnemySelection);//observe enemy selection
-        AddVectorObs(SelectedSquare);
-        // AddVectorObs();//observe turn?
+        AddVectorObs(SelectedSquare);//observer previous move
+       
     }
 
     public override void AgentAction(float[] vectorAction, string textAction)
@@ -62,7 +62,7 @@ public class Go_LogicML : Agent
         if (!MyTurn)
             return;
 
-        var key1 = (int)vectorAction[0];//w =1 enter=2
+        var key1 = (int)vectorAction[0];
         var key2 = (int)vectorAction[1];
 
 
@@ -297,6 +297,11 @@ public class Go_LogicML : Agent
 
 
     }
+    
+    
+    /*--------------------------------------
+    Code for playing with two human users
+    */-------------------------------------
     /*
     public void CheckCapture()
     {
